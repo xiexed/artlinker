@@ -95,18 +95,21 @@ class FilesView(UI_FilesView):
                         self._FilesView__openfile(sm.selectedRows()[0])
             
         self.keyPressEvent = keypressed
-        self.event_articleselected = Event()
+        self.event_articleselected = Event()        
         
-        
-        sm = self.selectionModel()
-        def onSelectionChanged(s, ds):
+        sm = self.selectionModel()        
+              
+        #self.connect(sm, QtCore.SIGNAL("selectionChanged ( const QItemSelection &, const QItemSelection &  )"), onSelectionChanged)                
+        print("connecting")
+        self.connect(sm, QtCore.SIGNAL("selectionChanged ( const QItemSelection &, const QItemSelection &  )"), self._FilesView__onSelectionChanged)
+        print("connected")                
+    
+    
+    def _FilesView__onSelectionChanged(self,s,ds):            
             if len(s)>0:
                 index = self.selectedIndexes()[0]
                 article = self.artmodel.getArticle(self._FilesView__proxyModel.mapToSource(index))
-                self.event_articleselected(article)
-                
-        self.connect(sm, QtCore.SIGNAL("selectionChanged ( const QItemSelection &, const QItemSelection &  )"), onSelectionChanged)                
-                  
+                self.event_articleselected(article)      
         
     def _FilesView__openfile(self, index):
         a = self.artmodel.getArticle(self._FilesView__proxyModel.mapToSource(index))
