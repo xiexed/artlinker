@@ -70,8 +70,12 @@ class ArtGridModel(QtCore.QAbstractTableModel):
         return sf
 
     def rowCount(self, parent):
+        if parent.isValid(): 
+            return 0
         return self._store2D.getcount()
     def columnCount(self,parent):
+        if parent.isValid(): 
+            return 0
         return 3
     def data(self, index, role):
         if not index.isValid():

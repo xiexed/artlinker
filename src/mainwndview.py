@@ -44,15 +44,10 @@ class Ui_MainWnd(QtGui.QMainWindow):
         self.autosaveAct = QtGui.QAction(self.tr("&Auto Save On Exit"), self)
         self.autosaveAct.setCheckable(True)
         self.autosaveAct.setChecked(True)
-        
-        def autosaveActClick():             
-                    self.saveAct.setDisabled(self.autosaveAct.isChecked())        
-        self.connect(self.autosaveAct, QtCore.SIGNAL("triggered()"), autosaveActClick)
-        
+                 
         
         self.saveAct = QtGui.QAction(self.tr("&Save"), self)
-        self.saveAct.setShortcut(self.tr("Ctrl+S"))
-        self.saveAct.setDisabled(True)
+        self.saveAct.setShortcut(self.tr("Ctrl+S"))        
         self.exitAct = QtGui.QAction(self.tr("E&xit"), self)
         self.exitAct.setShortcut(self.tr("Ctrl+Q"))
         self.aboutAct = QtGui.QAction(self.tr("&About"), self)
