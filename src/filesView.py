@@ -84,7 +84,7 @@ class FilesView(UI_FilesView):
         
         
         self.setModel(self._FilesView__proxyModel)        
-        self.connect(self, QtCore.SIGNAL("doubleClicked( const QModelIndex& )"), self._FilesView__openfile)
+        self.doubleClicked.connect(self._FilesView__openfile)
         
         def keypressed(e):
             QtGui.QTreeView.keyPressEvent(self,e)            
