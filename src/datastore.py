@@ -34,10 +34,10 @@ class Article(object):
         self.tags =[unicode(s).strip() for s in tstr.split(",")]
    
 class ArticleEncoder(json.JSONEncoder):
-     def default(self, obj):
-         if isinstance(obj, Article):
-             return {"name":obj.name, "orig":obj.origname, "tags":obj.tags, "descr":obj.descr }
-         return json.JSONEncoder.default(self, obj)     
+    def default(self, obj):
+        if isinstance(obj, Article):
+            return {"name":obj.name, "orig":obj.origname, "tags":obj.tags, "descr":obj.descr }
+        return json.JSONEncoder.default(self, obj)     
 
 
 def loadArticleStoreFromFolder(folder):
@@ -63,26 +63,26 @@ class ArticleStore(object):
         self.folder=folder
 
         pickled = dict()
-
-        try:
+#       
+        if os.path.isfile(self.folder+os.sep+jsonfilename):     
+            def as_Artilce(dct):
+                if 'tags' in dct:                    
+                    return Article(dct["name"], dct["orig"], dct["tags"], dct["descr"])
+                return dct
+            
+            f = open(self.folder+os.sep+jsonfilename, "rt")
+            pickled = json.load(f, encoding="UTF8",  object_hook=as_Artilce)
+            f.close()
+        elif os.path.isfile(self.folder+os.sep+filename):
             f = open(self.folder+os.sep+filename, "rb")
             pickled = pickle.load(f)
-            f.close()
-        except Exception, e:
-            print e
-            pass    
+            f.close()     
 
         fromdir = set()
         for e in os.listdir(folder):
             # @type e str
-            r = e
-#            try:
-#                r = e.decode(sys.getfilesystemencoding() or
-#                      sys.getdefaultencoding())
-#            except UnicodeDecodeError:
-#                print "ee:", e
-                
-
+            r = e 
+            
             if not r.endswith(".tags"):
                 fromdir.add(r)
 
@@ -97,21 +97,13 @@ class ArticleStore(object):
                 print orig," not in picled, new item created"
                 pickled[orig] = Article("",orig,[],"")
        
-
         self.articles = pickled
         self.__buildtags()
 
-    def savedata(self):
-        file = open(self.folder+os.sep+filename, "wb")
-        pickle.dump(self.articles, file)
-        file.close()  
-        
-        #file = open(self.folder+os.sep+jsonfilename, "wb")
-        #json.dump(self.articles, file, ensure_ascii = False,cls = ArticleEncoder,indent = 3)
-        #file.close()           
- 
- 
-
+    def savedata(self):        
+        file = open(self.folder+os.sep+jsonfilename, "wt")
+        json.dump(self.articles, file, ensure_ascii = False,cls = ArticleEncoder,indent = 3)
+        file.close()           
     
     def __buildtags(self):
         self.tags = set()
@@ -119,11 +111,3 @@ class ArticleStore(object):
             for tag in article.tags:
                 self.tags.add(tag)
 
-
-
-
-
-
-
-if __name__ == "__main__":
-    print "Hello World";
