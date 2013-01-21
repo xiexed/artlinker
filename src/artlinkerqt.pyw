@@ -18,8 +18,13 @@
 
 from artList import ArtTagList, ArtTagModel
 
-__author__="nickl"
-__date__ ="$03.09.2009 19:56:40$"
+__author__ = "nickl"
+__date__ = "$03.09.2009 19:56:40$"
+
+import sys;
+
+reload(sys);
+sys.setdefaultencoding("utf8")
 
 from datastore import Article
 from datastore import loadArticleStoreFromFolder
@@ -36,105 +41,102 @@ origfolder = u"/home/nickl/biotecnical/СтатьиНеМои/orig"
 
 
 class ArtLinker(Ui_MainWnd):
-    def __init__(self, path, parent = None):        
+    def __init__(self, path, parent=None):
         Ui_MainWnd.__init__(self, parent)
-        
+
         self.store = loadArticleStoreFromFolder(path)
         self.filesView = FilesView(self.store, self)
-        
+
         self.artList = ArtTagList(self)
-                
+
         self.setupUI()
-        
-               
+
         self.genTagsDockWiew()
-        self.genArticleDockWiew()      
-       
-             
-        
+        self.genArticleDockWiew()
+
+
+
         #dock = self.genArticleDockView()
         #self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock)  
-        
-        self.createMenus()        
-        self.setWindowTitle(self.tr("ArtLinker"))        
-       
 
-    def genTagsDockWiew(self):      
-        
+        self.createMenus()
+        self.setWindowTitle(self.tr("ArtLinker"))
+
+
+    def genTagsDockWiew(self):
         def andorstateschanged(val):
             self.filesView.artmodel.setOrMode(val == Qt.Qt.Checked)
             self.filesView.artmodel.filter(self.artList.getSeletedTags())
-        self.connect(self.andorbutton, QtCore.SIGNAL("stateChanged (int)"), andorstateschanged)    
+
+        self.connect(self.andorbutton, QtCore.SIGNAL("stateChanged (int)"), andorstateschanged)
         artTagModel = ArtTagModel(self, self.store)
         self.artList.addTagSelectionListener(self.filesView.artmodel.filter)
         self.artList.setModel(artTagModel)
-    
-    
+
+
     def saveCurArticleData(self):
         if self.articleView.curarticle is not None:
-            self.articleView.curarticle.name =  unicode(self.articleView.nameLineEdit.text())
-            self.articleView.curarticle.setTagsString(self.articleView.tagsLineEdit.text())  
-            self.articleView.curarticle.descr =  unicode(self.articleView.descrTextEdit.toPlainText())     
-  
-    
-        
+            self.articleView.curarticle.name = unicode(self.articleView.nameLineEdit.text())
+            self.articleView.curarticle.setTagsString(self.articleView.tagsLineEdit.text())
+            self.articleView.curarticle.descr = unicode(self.articleView.descrTextEdit.toPlainText())
+
+
     def genArticleDockWiew(self):
-                
         def setArticleData(article):
             self.articleView.nameLineEdit.setText(article.name)
             self.articleView.tagsLineEdit.setText(article.getTagsString())
             self.articleView.descrTextEdit.setPlainText(article.descr)
-        
-        def refreshArticleData():            
-            setArticleData(self.articleView.curarticle)  
-        
+
+        def refreshArticleData():
+            setArticleData(self.articleView.curarticle)
+
         def onSelectionChanged(article):
-            self.saveCurArticleData()                      
-                            
+            self.saveCurArticleData()
+
             self.articleView.curarticle = article
             setArticleData(article)
-        
+
         self.filesView.event_articleselected.subscribe(onSelectionChanged)
-        
+
         self.articleView.tagsLineEdit.setCompletationList(self.store.tags)
+
         def tagschanged():
             self.articleView.tagsLineEdit.setCompletationList(self.store.tags)
-        self.store.event_tagsChanged.subscribe(tagschanged)
-        
-        self.connect(self.filesView.artmodel, QtCore.SIGNAL("dataChanged ( const QModelIndex & , const QModelIndex & )"), refreshArticleData)                
 
+        self.store.event_tagsChanged.subscribe(tagschanged)
+
+        self.connect(self.filesView.artmodel,
+            QtCore.SIGNAL("dataChanged ( const QModelIndex & , const QModelIndex & )"), refreshArticleData)
 
 
     def savedata(self):
         self.saveCurArticleData()
-        self.store.savedata()    
+        self.store.savedata()
+
     def reloaddata(self):
         self.saveCurArticleData()
         self.store.saveAndReload()
 
-    def createMenus(self):        
+    def createMenus(self):
         self.connect(self.saveAct, QtCore.SIGNAL("triggered()"), self.savedata)
         self.connect(self.reloadAct, QtCore.SIGNAL("triggered()"), self.reloaddata)
-    
+
     def closeEvent(self, event):
         Ui_MainWnd.closeEvent(self, event)
         if self.autosaveAct.isChecked():
             self.savedata()
-        
- 
+
 
 if __name__ == "__main__":
-    
-    if len(sys.argv)>1:
-    
+    if len(sys.argv) > 1:
         app = QtGui.QApplication(sys.argv)
-        imageViewer = ArtLinker(unicode(sys.argv[1].decode(sys.getfilesystemencoding() or 
-                                                   sys.getdefaultencoding())))
+        imageViewer = ArtLinker(unicode(sys.argv[1].decode(sys.getfilesystemencoding() or
+                                                           sys.getdefaultencoding())))
         imageViewer.show()
         sys.exit(app.exec_())
     else:
         print "path was not specified"
-    
+
 #    mainwnd = QtGui.QMainWindow()
 #    Ui_MainWindow().setupUi(mainwnd)
 #    mainwnd.show()

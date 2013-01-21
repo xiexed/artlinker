@@ -21,23 +21,25 @@ from pyutils import Event
 
 
 class Article(object):
-    def __init__(self, name = "", origname = "", tags = [], descr = ""):
+    def __init__(self, name="", origname="", tags=[], descr=""):
         self.name = name
         self.origname = origname
         self.tags = tags
-        self.descr = descr         
-    
+        self.descr = descr
+
     def getTagsString(self):
         return ", ".join(self.tags)
-    
-    def setTagsString(self,tstr):
-        self.tags =[unicode(s).strip() for s in tstr.split(",")]
-   
+
+    def setTagsString(self, tstr):
+        self.tags = [unicode(s).strip() for s in tstr.split(",")]
+
+
 class ArticleEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Article):
-            return {"name":obj.name, "orig":obj.origname, "tags":obj.tags, "descr":obj.descr }
-        return json.JSONEncoder.default(self, obj)     
+            return {"name": unicode(obj.name), "orig": unicode(obj.origname), "tags": [unicode(x) for x in obj.tags],
+                    "descr": unicode(obj.descr)}
+        return json.JSONEncoder.default(self, obj)
 
 
 def loadArticleStoreFromFolder(folder):
@@ -48,63 +50,64 @@ def loadArticleStoreFromFolder(folder):
 
 filename = "pickle.tags"
 jsonfilename = "json.tags"
+
 class ArticleStore(object):
     def __init__(self):
         self.event_dataChanged = Event()
         self.event_tagsChanged = Event()
-      
+
     def saveAndReload(self):
         self.savedata()
         self._loadFromFolder(self.folder)
         self.event_dataChanged()
-        self.event_tagsChanged()  
+        self.event_tagsChanged()
 
     def _loadFromFolder(self, folder):
-        self.folder=folder
+        self.folder = folder
 
         pickled = dict()
-#       
-        if os.path.isfile(self.folder+os.sep+jsonfilename):     
+        #
+        if os.path.isfile(self.folder + os.sep + jsonfilename):
             def as_Artilce(dct):
-                if 'tags' in dct:                    
+                if 'tags' in dct:
                     return Article(dct["name"], dct["orig"], dct["tags"], dct["descr"])
                 return dct
-            
-            f = open(self.folder+os.sep+jsonfilename, "rt")
-            pickled = json.load(f, encoding="UTF8",  object_hook=as_Artilce)
+
+            f = open(self.folder + os.sep + jsonfilename, "rt")
+            pickled = json.load(f, encoding="utf-8", object_hook=as_Artilce)
             f.close()
-        elif os.path.isfile(self.folder+os.sep+filename):
-            f = open(self.folder+os.sep+filename, "rb")
+        elif os.path.isfile(self.folder + os.sep + filename):
+            f = open(self.folder + os.sep + filename, "rb")
             pickled = pickle.load(f)
-            f.close()     
+            f.close()
 
         fromdir = set()
         for e in os.listdir(folder):
             # @type e str
-            r = e 
-            
+            r = e
+
             if not r.endswith(".tags"):
                 fromdir.add(r)
 
         # @type pickled dict
         for orig in pickled.keys():
             if orig not in fromdir:
-                print orig," not in dir"
+                print orig, " not in dir"
                 del pickled[orig]
 
         for orig in fromdir:
             if orig not in pickled.keys():
-                print orig," not in picled, new item created"
-                pickled[orig] = Article("",orig,[],"")
-       
+                print orig, " not in picled, new item created"
+                pickled[orig] = Article("", orig, [], "")
+
         self.articles = pickled
         self.__buildtags()
 
-    def savedata(self):        
-        file = open(self.folder+os.sep+jsonfilename, "wt")
-        json.dump(self.articles, file, ensure_ascii = False,cls = ArticleEncoder,indent = 3)
-        file.close()           
-    
+    def savedata(self):
+        file = open(self.folder + os.sep + jsonfilename, "wt")
+        json.dump(self.articles, file, ensure_ascii=False, cls=ArticleEncoder, indent=3)
+        file.close()
+
     def __buildtags(self):
         self.tags = set()
         for article in self.articles.values():

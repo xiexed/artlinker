@@ -1,1 +1,3 @@
 glob:src/*.pyc
+syntax: glob
+.idea/workspace.xml
