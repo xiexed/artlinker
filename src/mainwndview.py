@@ -116,7 +116,8 @@ class Ui_MainWnd(QtGui.QMainWindow):
         self.articleView.curarticle = None             
         dockpanellayout = QtGui.QVBoxLayout()
         dockpanellayout.setMargin(0)        
-        formLayout = QtGui.QFormLayout()        
+        formLayout = QtGui.QFormLayout()
+        formLayout.setFieldGrowthPolicy(QtGui.QFormLayout.ExpandingFieldsGrow)
         self.articleView.nameLineEdit = QtGui.QLineEdit()        
         formLayout.addRow(self.tr("name"),self.articleView.nameLineEdit)
         self.articleView.tagsLineEdit = AutoLE()       

@@ -121,7 +121,7 @@ class FilesView(UI_FilesView):
         if os.name == 'nt':
             os.startfile(filepath)
         else:
-            prog = u"xdg-open" 
+            prog ="open" if sys.platform == "darwin" else "xdg-open"
             command = prog+u" \""+ filepath +u"\""
             print command.encode('utf8')
             os.system(command.encode('utf8')) 
