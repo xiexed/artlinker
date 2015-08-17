@@ -39,16 +39,16 @@ class UI_FilesView(QtGui.QTreeView):
 #                                 border-right-color: transparent;
 #                                 border-left-color: transparent;
 #                         }
-#        """)
+#        """)      
 #        class ItemDelegate(QtGui.QItemDelegate):
 #            def __init__(self, parent = None):
 #                QtGui.QItemDelegate.__init__(self, parent)
-
+                 
 #        id =  self.itemDelegate()
 #        def sizeHint (option,index ):
 #            print "called"
-#            QtGui.QStyledItemDelegate.sizeHint(id,option,index )
-#            return QtCore.QSize(20,20);
+#            QtGui.QStyledItemDelegate.sizeHint(id,option,index )            
+#            return QtCore.QSize(20,20); 
 #        id.sizeHint = sizeHint
         self.setItemDelegate(MyItemDelegate(self))
         self.setRootIsDecorated(False)
@@ -60,65 +60,64 @@ class UI_FilesView(QtGui.QTreeView):
 
         self.setEditTriggers(QtGui.QAbstractItemView.SelectedClicked)
         self.setItemsExpandable(False)
-
-class MyItemDelegate(QtGui.QStyledItemDelegate):
+    
+class MyItemDelegate(QtGui.QStyledItemDelegate): 
     def __init__(self, parent = None):
         QtGui.QStyledItemDelegate.__init__(self,parent)
-    def sizeHint (self,option,index ):
-        oqs=QtGui.QStyledItemDelegate.sizeHint(self,option,index )
-        return QtCore.QSize(oqs.width(),20);
-
-
-
+    def sizeHint (self,option,index ):        
+        oqs=QtGui.QStyledItemDelegate.sizeHint(self,option,index )            
+        return QtCore.QSize(oqs.width(),20);  
+    
+    
+ 
 class FilesView(UI_FilesView):
     def __init__(self, store, parent = None):
         UI_FilesView.__init__(self,parent)
-
+        
         self.store = store
-
+        
         self.artmodel = ArtGridModel(self, self.store)
-
+        
         self._FilesView__proxyModel = QtGui.QSortFilterProxyModel()
         self._FilesView__proxyModel.setDynamicSortFilter(True)
         self._FilesView__proxyModel.setSourceModel(self.artmodel)
-
-
-        self.setModel(self._FilesView__proxyModel)
+        
+        
+        self.setModel(self._FilesView__proxyModel)        
         self.doubleClicked.connect(self._FilesView__openfile)
-
+        
         def keypressed(e):
-            QtGui.QTreeView.keyPressEvent(self,e)
+            QtGui.QTreeView.keyPressEvent(self,e)            
             if e.key()==Qt.Qt.Key_Return:
                 if not self.filesView.state() == QtGui.QAbstractItemView.EditingState:
                     sm = self.filesView.selectionModel()
-                    if sm.hasSelection ():
+                    if sm.hasSelection ():                                                
                         self._FilesView__openfile(sm.selectedRows()[0])
-
+            
         self.keyPressEvent = keypressed
-        self.event_articleselected = Event()
-
-        sm = self.selectionModel()
-
-        #self.connect(sm, QtCore.SIGNAL("selectionChanged ( const QItemSelection &, const QItemSelection &  )"), onSelectionChanged)
+        self.event_articleselected = Event()        
+        
+        sm = self.selectionModel()        
+              
+        #self.connect(sm, QtCore.SIGNAL("selectionChanged ( const QItemSelection &, const QItemSelection &  )"), onSelectionChanged)                
         print("connecting")
         self.connect(sm, QtCore.SIGNAL("selectionChanged ( const QItemSelection &, const QItemSelection &  )"), self._FilesView__onSelectionChanged)
-        print("connected")
-
-
-    def _FilesView__onSelectionChanged(self,s,ds):
+        print("connected")                
+    
+    
+    def _FilesView__onSelectionChanged(self,s,ds):            
             if len(s)>0:
                 index = self.selectedIndexes()[0]
                 article = self.artmodel.getArticle(self._FilesView__proxyModel.mapToSource(index))
-                self.event_articleselected(article)
-
+                self.event_articleselected(article)      
+        
     def _FilesView__openfile(self, index):
         a = self.artmodel.getArticle(self._FilesView__proxyModel.mapToSource(index))
         #a = self.artmodel.getArticle(index)
         
         import os
-
-        folder = self.store.folder
-        filepath = folder + os.sep + a.origname
+        folder = unicode(self.store.folder)
+        filepath = folder+os.sep+ a.origname
         if os.name == 'nt':
             os.startfile(filepath)
         else:

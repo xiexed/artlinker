@@ -20,6 +20,11 @@ import re
 from filesView import FilesView
 from autocmplLE import AutoLE
 
+
+def open_settings():
+    return QtCore.QSettings("Nickl", "ArtLinker")
+
+
 class Ui_MainWnd(QtGui.QMainWindow):
     def __init__(self, parent = None):
         QtGui.QMainWindow.__init__(self, parent)
@@ -44,15 +49,18 @@ class Ui_MainWnd(QtGui.QMainWindow):
         self.autosaveAct = QtGui.QAction(self.tr("&Auto Save On Exit"), self)
         self.autosaveAct.setCheckable(True)
         self.autosaveAct.setChecked(True)
-                 
-        
+
+
+        self.openAct = QtGui.QAction(self.tr("&Open"), self)
+        self.openAct.setShortcut(self.tr("Ctrl+O"))
         self.saveAct = QtGui.QAction(self.tr("&Save"), self)
-        self.saveAct.setShortcut(self.tr("Ctrl+S"))        
+        self.saveAct.setShortcut(self.tr("Ctrl+S"))
         self.exitAct = QtGui.QAction(self.tr("E&xit"), self)
         self.exitAct.setShortcut(self.tr("Ctrl+Q"))
         self.aboutAct = QtGui.QAction(self.tr("&About"), self)
         self.aboutQtAct = QtGui.QAction(self.tr("About &Qt"), self)
         self.fileMenu = QtGui.QMenu(self.tr("&File"), self)
+        self.fileMenu.addAction(self.openAct)
         self.fileMenu.addAction(self.reloadAct)
         self.fileMenu.addAction(self.autosaveAct)
         self.fileMenu.addAction(self.saveAct)
@@ -135,7 +143,7 @@ class Ui_MainWnd(QtGui.QMainWindow):
     
     
     def _Ui_MainWnd__readSettings(self):
-        settings = QtCore.QSettings("Nickl", "ArtLinker")
+        settings = open_settings()
         pos = settings.value("pos", QtCore.QVariant(QtCore.QPoint(200, 200))).toPoint()
         size = settings.value("size", QtCore.QVariant(QtCore.QSize(800, 400))).toSize()                      
         self.restoreState(settings.value("mainwnd").toByteArray ())
@@ -146,16 +154,17 @@ class Ui_MainWnd(QtGui.QMainWindow):
         self.filesView.header().restoreState(settings.value("grid/headerstate").toByteArray ())
 
     def _Ui_MainWnd__writeSettings(self):
-        settings = QtCore.QSettings("Nickl", "ArtLinker")
+        settings = open_settings()
         if not self.isMaximized():
             settings.setValue("pos", QtCore.QVariant(self.pos()))
             settings.setValue("size", QtCore.QVariant(self.size()))
         settings.setValue("autosave", QtCore.QVariant(self.autosaveAct.isChecked())) 
         settings.setValue("wndstate", QtCore.QVariant(int(self.windowState()))) 
         settings.setValue("mainwnd", QtCore.QVariant(self.saveState ())) 
-        settings.setValue("grid/headerstate", QtCore.QVariant(self.filesView.header().saveState ()))    
-        
-    def _Ui_MainWnd__createFilesView(self):        
+        settings.setValue("grid/headerstate", QtCore.QVariant(self.filesView.header().saveState ()))
+        settings.sync()
+
+    def _Ui_MainWnd__createFilesView(self):
         self.setCentralWidget(self.filesView)
 
     def about(self):

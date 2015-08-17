@@ -17,6 +17,7 @@
 #       Nickl Mitropolsky <lkuka@mail.ru> (original author)
 
 from artList import ArtTagList, ArtTagModel
+from mainwndview import open_settings
 
 __author__ = "nickl"
 __date__ = "$03.09.2009 19:56:40$"
@@ -37,14 +38,19 @@ from artGridModel import *
 from mainwndview import Ui_MainWnd
 from filesView import FilesView
 
-origfolder = u"/home/nickl/biotecnical/СтатьиНеМои/orig"
-
 
 class ArtLinker(Ui_MainWnd):
     def __init__(self, path, parent=None):
         Ui_MainWnd.__init__(self, parent)
 
         self.store = loadArticleStoreFromFolder(path)
+        settings = open_settings()
+        history = settings.value("history", type='QStringList')
+        history.prepend(path)
+        settings.setValue("history", history[0:5])
+        settings.sync()
+        del settings
+
         self.filesView = FilesView(self.store, self)
 
         self.artList = ArtTagList(self)
@@ -118,8 +124,19 @@ class ArtLinker(Ui_MainWnd):
         self.store.saveAndReload()
 
     def createMenus(self):
+        self.openAct.triggered.connect(self.open)
         self.connect(self.saveAct, QtCore.SIGNAL("triggered()"), self.savedata)
         self.connect(self.reloadAct, QtCore.SIGNAL("triggered()"), self.reloaddata)
+
+    def open(self):
+        fd = QtGui.QFileDialog(self)
+        fd.setFileMode(QtGui.QFileDialog.DirectoryOnly)
+        if fd.exec_():
+            pathToOpen = fd.selectedFiles()[0]
+            new_wnd = ArtLinker(pathToOpen)
+            self.close()
+            new_wnd.show()
+
 
     def closeEvent(self, event):
         Ui_MainWnd.closeEvent(self, event)
@@ -128,14 +145,34 @@ class ArtLinker(Ui_MainWnd):
 
 
 if __name__ == "__main__":
+    pathToOpen = None
     if len(sys.argv) > 1:
-        app = QtGui.QApplication(sys.argv)
-        imageViewer = ArtLinker(unicode(sys.argv[1].decode(sys.getfilesystemencoding() or
-                                                           sys.getdefaultencoding())))
-        imageViewer.show()
-        sys.exit(app.exec_())
-    else:
-        print "path was not specified"
+        pathToOpen = unicode(sys.argv[1].decode(sys.getfilesystemencoding() or sys.getdefaultencoding()))
+
+    if pathToOpen is None:
+        settings = open_settings()
+        print settings.fileName()
+        prev = settings.value("history", type='QStringList')
+        if len(prev) > 0:
+            pathToOpen = prev[0]
+
+    app = QtGui.QApplication(sys.argv)
+
+    if pathToOpen is None:
+        fd = QtGui.QFileDialog()
+        fd.setFileMode(QtGui.QFileDialog.DirectoryOnly)
+        if fd.exec_():
+            pathToOpen = fd.selectedFiles()[0]
+        fd.destroy()
+
+    if pathToOpen is None:
+        print("no files selected")
+        exit(1)
+
+
+    imageViewer = ArtLinker(pathToOpen)
+    imageViewer.show()
+    sys.exit(app.exec_())
 
 #    mainwnd = QtGui.QMainWindow()
 #    Ui_MainWindow().setupUi(mainwnd)
