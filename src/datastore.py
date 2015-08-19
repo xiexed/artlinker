@@ -49,7 +49,8 @@ def loadArticleStoreFromFolder(folder):
 
 
 filename = "pickle.tags"
-jsonfilename = "json.tags"
+jsonfilename = "tags.json"
+jsonfilenameOld = "json.tags"
 
 class ArticleStore(object):
     def __init__(self):
@@ -66,14 +67,18 @@ class ArticleStore(object):
         self.folder = folder
 
         pickled = dict()
-        #
-        if os.path.isfile(self.folder + os.sep + jsonfilename):
-            def as_Artilce(dct):
-                if 'tags' in dct:
-                    return Article(dct["name"], dct["orig"], dct["tags"], dct["descr"])
-                return dct
 
+        def as_Artilce(dct):
+            if 'tags' in dct:
+                return Article(dct["name"], dct["orig"], dct["tags"], dct["descr"])
+            return dct
+
+        if os.path.isfile(self.folder + os.sep + jsonfilename):
             f = open(self.folder + os.sep + jsonfilename, "rt")
+            pickled = json.load(f, encoding="utf-8", object_hook=as_Artilce)
+            f.close()
+        elif os.path.isfile(self.folder + os.sep + jsonfilenameOld):
+            f = open(self.folder + os.sep + jsonfilenameOld, "rt")
             pickled = json.load(f, encoding="utf-8", object_hook=as_Artilce)
             f.close()
         elif os.path.isfile(self.folder + os.sep + filename):
@@ -84,7 +89,7 @@ class ArticleStore(object):
         fromdir = set()
         for e in os.listdir(folder):
             # @type e str
-            r = e
+            r = unicode(e.decode(sys.getfilesystemencoding()))
 
             if not r.endswith(".tags"):
                 fromdir.add(r)
